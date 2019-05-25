@@ -2,7 +2,7 @@ import React from "react";
 import { Image } from "react-native";
 import { MapView } from "expo";
 
-import Pin from "../../../assets/marker.png";
+import Pin from "@assets/marker.png";
 
 const Marker = ({ ...props }) => (
   <MapView.Marker {...props}>
