@@ -1,4 +1,7 @@
 export default {
+  colors: {
+    blue: "#00BAE5"
+  },
   sizes: {
     lg: 48
   },

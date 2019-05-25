@@ -7,6 +7,7 @@ import Button from "@components/Button";
 import MapAction from "@components/MapAction";
 import Marker from "@components/Marker";
 import Route from "@components/Route";
+import Loader from "@components/Loader";
 import THEME from "@theme";
 import { SOCKET_BASE_URL } from "@constants";
 import { withLocation } from "@utils/with-location";
@@ -23,12 +24,14 @@ class Driver extends React.Component {
     };
   }
 
+  componentDidMount = () => {
+    this.socket = socketIO.connect(SOCKET_BASE_URL);
+  };
+
   findPassengers = () => {
+    const { socket } = this;
     this.setState({ findingPassengers: true });
-    const socket = socketIO.connect(SOCKET_BASE_URL);
-    socket.on("connect", () => {
-      socket.emit("findPassengers");
-    });
+    socket.emit("findPassengers");
     // When a user requests a ride...
     socket.on("rideRequested", async ridePlaceIds => {
       const { userLocation } = this.props;
@@ -55,6 +58,8 @@ class Driver extends React.Component {
       }
     });
   };
+
+  acceptRide = () => {};
 
   render() {
     const { findingPassengers, routeToPassenger, passengerFound } = this.state;
@@ -84,7 +89,7 @@ class Driver extends React.Component {
           {!passengerFound ? (
             <Button onPress={this.findPassengers} label="Find Passengers">
               {findingPassengers && (
-                <ActivityIndicator
+                <Loader
                   style={styles.indicator}
                   animating={findingPassengers}
                 />

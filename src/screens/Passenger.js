@@ -1,5 +1,5 @@
 import React, { Fragment } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { MapView } from "expo";
 import socketIO from "socket.io-client";
 
@@ -8,6 +8,8 @@ import DestinationSearch from "@components/DestinationSearch";
 import Marker from "@components/Marker";
 import MapAction from "@components/MapAction";
 import Route from "@components/Route";
+import Loader from "@components/Loader";
+import THEME from "@theme";
 import { SOCKET_BASE_URL } from "@constants";
 import { withLocation } from "@utils/with-location";
 import { getRouteDirections } from "@utils/get-route-directions";
@@ -18,9 +20,14 @@ class Passenger extends React.Component {
     super(props);
     this.state = {
       polylineToDestination: [],
-      ridePlaceIds: null
+      ridePlaceIds: null,
+      findingDriver: false
     };
   }
+
+  componentWillMount = () => {
+    this.socket = socketIO.connect(SOCKET_BASE_URL);
+  };
 
   handleDestinationSelect = async placeId => {
     const { userLocation } = this.props;
@@ -56,18 +63,17 @@ class Passenger extends React.Component {
   };
 
   requestDriver = () => {
-    const socket = socketIO.connect(SOCKET_BASE_URL);
-    const { ridePlaceIds } = this.state;
-    socket.on("connect", () => {
-      // Sned off the passenger and destination placeID
-      if (ridePlaceIds) {
-        socket.emit("requestRide", ridePlaceIds);
-      }
-    });
+    const { socket } = this;
+    this.setState({ findingDriver: true });
+    const { ridePlaceIds, findingDriver } = this.state;
+    if (findingDriver) return;
+    if (ridePlaceIds) {
+      socket.emit("requestRide", ridePlaceIds);
+    }
   };
 
   render() {
-    const { polylineToDestination } = this.state;
+    const { polylineToDestination, findingDriver } = this.state;
     const { userLocation } = this.props;
     return (
       <View style={styles.container}>
@@ -99,7 +105,14 @@ class Passenger extends React.Component {
         />
         {polylineToDestination.length > 0 && (
           <MapAction>
-            <Button onPress={this.requestDriver} label="Request Driver" />
+            <Button
+              onPress={this.requestDriver}
+              label={!findingDriver ? "Request Ride" : "Finding Driver"}
+            >
+              {findingDriver && (
+                <Loader style={styles.indicator} animating={findingDriver} />
+              )}
+            </Button>
           </MapAction>
         )}
       </View>
@@ -113,6 +126,9 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject
+  },
+  indicator: {
+    marginLeft: THEME.spacing.sm
   }
 });
 
