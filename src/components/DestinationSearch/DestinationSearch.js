@@ -61,7 +61,7 @@ class DestinationSearch extends React.Component {
       });
       this.setState({ query: name, results: [] });
       Keyboard.dismiss();
-      this.props.onRouteLoaded(pointCoords);
+      this.props.onRouteLoaded(pointCoords, res);
     } catch (err) {
       // TODO: Handle fetch issue
     }

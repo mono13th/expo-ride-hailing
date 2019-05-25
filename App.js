@@ -1,84 +1,46 @@
 import React, { Fragment } from "react";
-import { View, StyleSheet } from "react-native";
-import { MapView } from "expo";
+import { StyleSheet, Button, View } from "react-native";
 
-import DestinationSearch from "./src/components/DestinationSearch";
+/**
+ * Ignore socket warning
+ */
+console.ignoredYellowBox = ["Remote debugger"];
+import { YellowBox } from "react-native";
+YellowBox.ignoreWarnings([
+  "Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?"
+]);
 
-export default class App extends React.Component {
+import Driver from "./src/screens/Driver";
+import Passenger from "./src/screens/Passenger";
+
+class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      userLocation: {
-        latitude: 0,
-        longitude: 0
-      },
-      routePathCoords: [],
-      error: null
+      context: null
     };
   }
 
-  componentDidMount = () => {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        this.setState({
-          userLocation: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          },
-          error: null
-        });
-      },
-      err => {
-        this.setState({ error: error.message });
-      },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
-    );
+  setDriverContext = () => {
+    this.setState({ context: "driver" });
   };
 
-  handleRouteLoaded = routePathCoords => {
-    const self = this;
-    setTimeout(() => {
-      self.setState({ routePathCoords });
-    }, 1000);
-    this.refs.map.fitToCoordinates(routePathCoords, {
-      edgePadding: { top: 350, right: 150, bottom: 150, left: 150 },
-      animated: true
-    });
+  setPassengerContext = () => {
+    this.setState({ context: "passenger" });
   };
 
   render() {
-    const { userLocation, routePathCoords } = this.state;
-    // TODO: Add loading state here to center map on user's location
+    const { context } = this.state;
+    if (context === "driver") {
+      return <Driver />;
+    }
+    if (context === "passenger") {
+      return <Passenger />;
+    }
     return (
       <View style={styles.container}>
-        <MapView
-          ref="map"
-          style={styles.map}
-          initialRegion={{
-            latitude: 30.2672,
-            longitude: -97.7431,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421
-          }}
-          showsUserLocation={true}
-        >
-          {routePathCoords.length > 0 && (
-            <Fragment>
-              <MapView.Polyline
-                coordinates={routePathCoords}
-                strokeWidth={5}
-                strokeColor="#ff0000"
-              />
-              <MapView.Marker
-                coordinate={routePathCoords[routePathCoords.length - 1]}
-              />
-            </Fragment>
-          )}
-        </MapView>
-        <DestinationSearch
-          userLocation={userLocation}
-          onRouteLoaded={this.handleRouteLoaded}
-        />
+        <Button title="Driver" onPress={this.setDriverContext} />
+        <Button title="Passenger" onPress={this.setPassengerContext} />
       </View>
     );
   }
@@ -86,9 +48,9 @@ export default class App extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject
+    flex: 1,
+    paddingTop: 50
   }
 });
+
+export default App;

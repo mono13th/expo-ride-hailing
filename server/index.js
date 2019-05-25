@@ -1,14 +1,13 @@
 const express = require("express");
-const server = require("http").createServer(app);
-const io = require("socket.io").listen(server);
 const app = express();
 const port = 3000;
+const server = require("http").createServer(app);
+const io = require("socket.io").listen(server);
 
 io.on("connection", socket => {
   console.log("a user connected :D");
-  socket.on("chat message", msg => {
-    console.log(msg);
-    io.emit("chat message", msg);
+  socket.on("rideRequest", routeDetails => {
+    console.log(routeDetails);
   });
 });
 
