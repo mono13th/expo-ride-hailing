@@ -42,3 +42,7 @@ Passengers can search for a destination, see a route defined on a map, and see t
 1. View the planned route on a map
 1. Request a ride
 1. Once the driver has accepted the ride, you will see the car icon appear
+
+---
+
+Very loosely based on a [Udemy Course](https://www.udemy.com/taxi-app-in-react-native/), but with a complete refactor to use Expo and improve the overall code quality.
