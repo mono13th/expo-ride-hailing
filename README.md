@@ -4,6 +4,8 @@ This is an incredibly simple "ride hailing application" built with Expo and Sock
 
 ![passenger](https://user-images.githubusercontent.com/12575994/58374728-c3071d00-7f08-11e9-8cd8-c300764e3e65.png)
 
+---
+
 ### Local Setup
 
 1. Clone this repository with `git clone https://github.com/tsnolan23/expo-ride-hailing.git`
@@ -16,6 +18,8 @@ This is an incredibly simple "ride hailing application" built with Expo and Sock
 
 > \* These values are required for the map searches and socket server to work with Expo running on your devices
 
+---
+
 ### Drivers
 
 Drivers can search for potential rides, view the route to get to the passenger, accept the ride, and then have navigation begin to pick them up.
@@ -25,6 +29,8 @@ Drivers can search for potential rides, view the route to get to the passenger, 
 1. Click `Find Passengers`
 1. Once a passenger requests a ride, a route will be planned to pick them up
 1. Accept the ride to start navigation
+
+---
 
 ### Passengers
 
