@@ -55,9 +55,12 @@ class Passenger extends React.Component {
 
   requestDriver = () => {
     const socket = socketIO.connect(SOCKET_BASE_URL);
+    const { ridePlaceIds } = this.state;
     socket.on("connect", () => {
       // Sned off the passenger and destination placeID
-      socket.emit("requestRide", this.state.ridePlaceIds);
+      if (ridePlaceIds) {
+        socket.emit("requestRide", ridePlaceIds);
+      }
     });
   };
 

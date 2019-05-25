@@ -15,6 +15,7 @@ class Driver extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      passengerFound: false,
       findingPassengers: false,
       routeToPassenger: []
     };
@@ -39,7 +40,11 @@ class Driver extends React.Component {
       if (route) {
         const polylineCoords = buildRoutePolyline(route);
         setTimeout(() => {
-          this.setState({ routeToPassenger: polylineCoords });
+          this.setState({
+            routeToPassenger: polylineCoords,
+            findPassengers: false,
+            passengerFound: true
+          });
         }, 1000);
         this.refs.map.fitToCoordinates(polylineCoords, {
           edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
@@ -50,7 +55,7 @@ class Driver extends React.Component {
   };
 
   render() {
-    const { findingPassengers, routeToPassenger } = this.state;
+    const { findingPassengers, routeToPassenger, passengerFound } = this.state;
     return (
       <View style={styles.container}>
         <MapView
@@ -78,14 +83,18 @@ class Driver extends React.Component {
           )}
         </MapView>
         <MapAction>
-          <Button onPress={this.findPassengers} label="Find Passengers">
-            {findingPassengers && (
-              <ActivityIndicator
-                style={styles.indicator}
-                animating={findingPassengers}
-              />
-            )}
-          </Button>
+          {!passengerFound ? (
+            <Button onPress={this.findPassengers} label="Find Passengers">
+              {findingPassengers && (
+                <ActivityIndicator
+                  style={styles.indicator}
+                  animating={findingPassengers}
+                />
+              )}
+            </Button>
+          ) : (
+            <Button onPress={this.acceptRide} label="Accept Ride" />
+          )}
         </MapAction>
       </View>
     );
