@@ -1,54 +1,56 @@
 import React, { Fragment } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { MapView } from "expo";
+import socketIO from "socket.io-client";
 
-import DestinationSearch from "../components/DestinationSearch";
+import Button from "../components/Button";
+import MapAction from "../components/MapAction";
+import THEME from "../theme";
+import { SOCKET_BASE_URL } from "../constants";
+import { withLocation } from "../utils/with-location";
+import { getRouteDirections } from "../utils/get-route-directions";
+import { buildRoutePolyline } from "../utils/build-route-polyline";
 
 class Driver extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      userLocation: {
-        latitude: 0,
-        longitude: 0
-      },
-      routePathCoords: [],
-      error: null
+      findingPassengers: false,
+      routeToPassenger: []
     };
   }
 
-  componentDidMount = () => {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        this.setState({
-          userLocation: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          },
-          error: null
+  findPassengers = () => {
+    this.setState({ findingPassengers: true });
+    const socket = socketIO.connect(SOCKET_BASE_URL);
+    socket.on("connect", () => {
+      socket.emit("findPassengers");
+    });
+    // When a user requests a ride...
+    socket.on("rideRequested", async ridePlaceIds => {
+      const { userLocation } = this.props;
+      const { latitude, longitude } = userLocation;
+      // Find directions to the passenger
+      // and draw them on the map
+      const route = await getRouteDirections(
+        `${latitude},${longitude}`,
+        `place_id:${ridePlaceIds.passenger}`
+      );
+      if (route) {
+        const polylineCoords = buildRoutePolyline(route);
+        setTimeout(() => {
+          this.setState({ routeToPassenger: polylineCoords });
+        }, 1000);
+        this.refs.map.fitToCoordinates(polylineCoords, {
+          edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
+          animated: true
         });
-      },
-      err => {
-        this.setState({ error: error.message });
-      },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
-    );
-  };
-
-  handleRouteLoaded = routePathCoords => {
-    const self = this;
-    setTimeout(() => {
-      self.setState({ routePathCoords });
-    }, 1000);
-    this.refs.map.fitToCoordinates(routePathCoords, {
-      edgePadding: { top: 350, right: 150, bottom: 150, left: 150 },
-      animated: true
+      }
     });
   };
 
   render() {
-    const { userLocation, routePathCoords } = this.state;
-    // TODO: Add loading state here to center map on user's location
+    const { findingPassengers, routeToPassenger } = this.state;
     return (
       <View style={styles.container}>
         <MapView
@@ -62,23 +64,29 @@ class Driver extends React.Component {
           }}
           showsUserLocation={true}
         >
-          {routePathCoords.length > 0 && (
+          {routeToPassenger.length > 0 && (
             <Fragment>
               <MapView.Polyline
-                coordinates={routePathCoords}
+                coordinates={routeToPassenger}
                 strokeWidth={5}
                 strokeColor="#ff0000"
               />
               <MapView.Marker
-                coordinate={routePathCoords[routePathCoords.length - 1]}
+                coordinate={routeToPassenger[routeToPassenger.length - 1]}
               />
             </Fragment>
           )}
         </MapView>
-        <DestinationSearch
-          userLocation={userLocation}
-          onRouteLoaded={this.handleRouteLoaded}
-        />
+        <MapAction>
+          <Button onPress={this.findPassengers} label="Find Passengers">
+            {findingPassengers && (
+              <ActivityIndicator
+                style={styles.indicator}
+                animating={findingPassengers}
+              />
+            )}
+          </Button>
+        </MapAction>
       </View>
     );
   }
@@ -90,7 +98,10 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject
+  },
+  indicator: {
+    marginLeft: THEME.spacing.sm
   }
 });
 
-export default Driver;
+export default withLocation(Driver);

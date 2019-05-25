@@ -7,9 +7,8 @@ import {
   Keyboard
 } from "react-native";
 import { debounce } from "lodash";
-import PolyLine from "@mapbox/polyline";
 
-import { PLACES_SEARCH_BASE_URL, DIRECTIONS_BASE_URL } from "../../constants";
+import { PLACES_SEARCH_BASE_URL } from "../../constants";
 import THEME from "../../theme";
 import Result from "./Result";
 
@@ -24,10 +23,6 @@ class DestinationSearch extends React.Component {
     this.fetchDestinations(query);
   };
 
-  /**
-   * Fetch a list of destinations
-   * based on the user's search query
-   */
   fetchDestinations = debounce(async query => {
     const { userLocation } = this.props;
     const { latitude, longitude } = userLocation;
@@ -41,30 +36,10 @@ class DestinationSearch extends React.Component {
     }
   }, 500);
 
-  /**
-   * Get directions to a destination
-   * after a user clicks the result
-   */
-  getRouteDirections = async (placeId, name) => {
-    const { userLocation } = this.props;
-    const { latitude, longitude } = userLocation;
-    const url = `${DIRECTIONS_BASE_URL}&origin=${latitude},${longitude}&destination=place_id:${placeId}`;
-    try {
-      const result = await fetch(url);
-      const res = await result.json();
-      const points = PolyLine.decode(res.routes[0].overview_polyline.points);
-      const pointCoords = points.map(point => {
-        return {
-          latitude: point[0],
-          longitude: point[1]
-        };
-      });
-      this.setState({ query: name, results: [] });
-      Keyboard.dismiss();
-      this.props.onRouteLoaded(pointCoords, res);
-    } catch (err) {
-      // TODO: Handle fetch issue
-    }
+  handlePlaceSelect = async (placeId, name) => {
+    this.setState({ query: name, results: [] });
+    this.props.onDestinationSelect(placeId);
+    Keyboard.dismiss();
   };
 
   render() {
@@ -74,7 +49,7 @@ class DestinationSearch extends React.Component {
       return (
         <TouchableHighlight
           onPress={() =>
-            this.getRouteDirections(place_id, structured_formatting.main_text)
+            this.handlePlaceSelect(place_id, structured_formatting.main_text)
           }
           key={id}
         >

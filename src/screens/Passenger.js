@@ -5,61 +5,65 @@ import socketIO from "socket.io-client";
 
 import Button from "../components/Button";
 import DestinationSearch from "../components/DestinationSearch";
-import THEME from "../theme";
+import MapAction from "../components/MapAction";
 import { SOCKET_BASE_URL } from "../constants";
+import { withLocation } from "../utils/with-location";
+import { getRouteDirections } from "../utils/get-route-directions";
+import { buildRoutePolyline } from "../utils/build-route-polyline";
 
 class Passenger extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      userLocation: {
-        latitude: 0,
-        longitude: 0
-      },
-      routePathCoords: [],
-      error: null
+      polylineToDestination: [],
+      ridePlaceIds: null
     };
   }
 
-  componentDidMount = () => {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        this.setState({
-          userLocation: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          },
-          error: null
-        });
-      },
-      err => {
-        this.setState({ error: error.message });
-      },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
+  handleDestinationSelect = async placeId => {
+    const { userLocation } = this.props;
+    const { latitude, longitude } = userLocation;
+    // Get directions to selected destination
+    const route = await getRouteDirections(
+      `${latitude},${longitude}`,
+      `place_id:${placeId}`
     );
-  };
-
-  handleRouteLoaded = (routePathCoords, resp) => {
-    const self = this;
-    setTimeout(() => {
-      self.setState({ routePathCoords, routeResponse: resp });
-    }, 1000);
-    this.refs.map.fitToCoordinates(routePathCoords, {
-      edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
-      animated: true
-    });
+    if (route) {
+      // Convert directions to usable polyline coords
+      const polylineCoords = buildRoutePolyline(route);
+      // Pull off the passenger and destination place ids
+      // to send off to the server
+      const [passenger, destination] = route.geocoded_waypoints;
+      this.setState({
+        ridePlaceIds: {
+          passenger: passenger.place_id,
+          destination: destination.place_id
+        }
+      });
+      this.refs.map.fitToCoordinates(polylineCoords, {
+        edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
+        animated: true
+      });
+      // Delay updating polyline state until animation is complete
+      setTimeout(() => {
+        this.setState({
+          polylineToDestination: polylineCoords
+        });
+      }, 1000);
+    }
   };
 
   requestDriver = () => {
     const socket = socketIO.connect(SOCKET_BASE_URL);
     socket.on("connect", () => {
-      socket.emit("rideRequest", this.state.routeResponse);
+      // Sned off the passenger and destination placeID
+      socket.emit("requestRide", this.state.ridePlaceIds);
     });
   };
 
   render() {
-    const { userLocation, routePathCoords } = this.state;
-    // TODO: Add loading state here to center map on user's location
+    const { polylineToDestination } = this.state;
+    const { userLocation } = this.props;
     return (
       <View style={styles.container}>
         <MapView
@@ -73,27 +77,29 @@ class Passenger extends React.Component {
           }}
           showsUserLocation={true}
         >
-          {routePathCoords.length > 0 && (
+          {polylineToDestination.length > 0 && (
             <Fragment>
               <MapView.Polyline
-                coordinates={routePathCoords}
+                coordinates={polylineToDestination}
                 strokeWidth={5}
                 strokeColor="#ff0000"
               />
               <MapView.Marker
-                coordinate={routePathCoords[routePathCoords.length - 1]}
+                coordinate={
+                  polylineToDestination[polylineToDestination.length - 1]
+                }
               />
             </Fragment>
           )}
         </MapView>
         <DestinationSearch
           userLocation={userLocation}
-          onRouteLoaded={this.handleRouteLoaded}
+          onDestinationSelect={this.handleDestinationSelect}
         />
-        {routePathCoords.length > 0 && (
-          <View style={styles.request}>
+        {polylineToDestination.length > 0 && (
+          <MapAction>
             <Button onPress={this.requestDriver} label="Request Driver" />
-          </View>
+          </MapAction>
         )}
       </View>
     );
@@ -106,13 +112,7 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject
-  },
-  request: {
-    marginTop: "auto",
-    marginBottom: THEME.spacing.lg,
-    marginLeft: THEME.spacing.lg,
-    marginRight: THEME.spacing.lg
   }
 });
 
-export default Passenger;
+export default withLocation(Passenger);
