@@ -2,7 +2,7 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "start:server": "node server/index.js",
+    "start:server": "nodemon server/index.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "eject": "expo eject"
@@ -22,6 +22,7 @@
   "devDependencies": {
     "babel-plugin-module-resolver": "^3.2.0",
     "babel-preset-expo": "^5.0.0",
+    "nodemon": "^1.19.1",
     "react-native-dotenv": "^0.2.0"
   }
 }
