@@ -5,6 +5,7 @@ import socketIO from "socket.io-client";
 
 import Button from "@components/Button";
 import DestinationSearch from "@components/DestinationSearch";
+import Marker from "@components/Marker";
 import MapAction from "@components/MapAction";
 import Route from "@components/Route";
 import { SOCKET_BASE_URL } from "@constants";
@@ -84,7 +85,7 @@ class Passenger extends React.Component {
           {polylineToDestination.length > 0 && (
             <Fragment>
               <Route coordinates={polylineToDestination} />
-              <MapView.Marker
+              <Marker
                 coordinate={
                   polylineToDestination[polylineToDestination.length - 1]
                 }

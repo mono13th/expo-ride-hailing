@@ -5,6 +5,7 @@ import socketIO from "socket.io-client";
 
 import Button from "@components/Button";
 import MapAction from "@components/MapAction";
+import Marker from "@components/Marker";
 import Route from "@components/Route";
 import THEME from "@theme";
 import { SOCKET_BASE_URL } from "@constants";
@@ -73,7 +74,7 @@ class Driver extends React.Component {
           {routeToPassenger.length > 0 && (
             <Fragment>
               <Route coordinates={routeToPassenger} />
-              <MapView.Marker
+              <Marker
                 coordinate={routeToPassenger[routeToPassenger.length - 1]}
               />
             </Fragment>
