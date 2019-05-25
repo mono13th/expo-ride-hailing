@@ -1,9 +1,9 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 14854,
-  "expoServerNgrokUrl": "https://hd-6pv.anonymous.expo-ride-hailing.exp.direct",
-  "packagerNgrokUrl": "https://packager.hd-6pv.anonymous.expo-ride-hailing.exp.direct",
-  "ngrokPid": 14868
+  "expoServerPort": null,
+  "packagerPort": null,
+  "packagerPid": null,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null
 }

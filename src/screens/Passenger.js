@@ -88,7 +88,6 @@ class Passenger extends React.Component {
     const { socket } = this;
     this.setState({ findingDriver: true });
     const { ridePlaceIds, findingDriver } = this.state;
-    if (findingDriver) return;
     if (ridePlaceIds) {
       socket.emit("requestRide", ridePlaceIds);
     }
