@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Linking } from "react-native";
 import { MapView } from "expo";
+import { Platform } from "expo-core";
 import socketIO from "socket.io-client";
 
 import Button from "@components/Button";
@@ -26,40 +27,60 @@ class Driver extends React.Component {
 
   componentDidMount = () => {
     this.socket = socketIO.connect(SOCKET_BASE_URL);
-  };
-
-  findPassengers = () => {
-    const { socket } = this;
-    this.setState({ findingPassengers: true });
-    socket.emit("findPassengers");
-    // When a user requests a ride...
-    socket.on("rideRequested", async ridePlaceIds => {
-      const { userLocation } = this.props;
-      const { latitude, longitude } = userLocation;
-      // Find directions to the passenger
-      // and draw them on the map
-      const route = await getRouteDirections(
-        `${latitude},${longitude}`,
-        `place_id:${ridePlaceIds.passenger}`
-      );
-      if (route) {
-        const polylineCoords = buildRoutePolyline(route);
-        setTimeout(() => {
-          this.setState({
-            routeToPassenger: polylineCoords,
-            findPassengers: false,
-            passengerFound: true
-          });
-        }, 1000);
-        this.refs.map.fitToCoordinates(polylineCoords, {
-          edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
-          animated: true
-        });
-      }
+    this.socket.on("rideRequested", ridePlaceIds => {
+      this.handleRideRequested(ridePlaceIds);
     });
   };
 
-  acceptRide = () => {};
+  handleRideRequested = async ridePlaceIds => {
+    const { userLocation } = this.props;
+    const { latitude, longitude } = userLocation;
+    // Find directions to the passenger
+    // and draw them on the map
+    const route = await getRouteDirections(
+      `${latitude},${longitude}`,
+      `place_id:${ridePlaceIds.passenger}`
+    );
+    if (route) {
+      const polylineCoords = buildRoutePolyline(route);
+      setTimeout(() => {
+        this.setState({
+          routeToPassenger: polylineCoords,
+          findPassengers: false,
+          passengerFound: true
+        });
+      }, 1000);
+      this.refs.map.fitToCoordinates(polylineCoords, {
+        edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
+        animated: true
+      });
+    }
+  };
+
+  findPassengers = () => {
+    this.setState({ findingPassengers: true });
+    this.socket.emit("findPassengers");
+  };
+
+  acceptRide = () => {
+    const { userLocation } = this.props;
+    const { routeToPassenger } = this.state;
+    const passengerLatLng = routeToPassenger[routeToPassenger.length - 1];
+    this.socket.emit("rideAccepted", userLocation);
+    if (Platform.OS === "ios") {
+      Linking.openURL(
+        `http://maps.apple.com/?daddr=${passengerLatLng.latitude},${
+          passengerLatLng.longitude
+        }`
+      );
+    } else {
+      Linking.openURL(
+        `https://maps.google.com/?daddr=${passengerLatLng.latitude},${
+          passengerLatLng.longitude
+        }`
+      );
+    }
+  };
 
   render() {
     const { findingPassengers, routeToPassenger, passengerFound } = this.state;

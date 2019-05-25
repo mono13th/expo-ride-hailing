@@ -1,11 +1,12 @@
 import React, { Fragment } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { MapView } from "expo";
 import socketIO from "socket.io-client";
 
 import Button from "@components/Button";
 import DestinationSearch from "@components/DestinationSearch";
 import Marker from "@components/Marker";
+import DriverMarker from "@components/DriverMarker";
 import MapAction from "@components/MapAction";
 import Route from "@components/Route";
 import Loader from "@components/Loader";
@@ -21,12 +22,33 @@ class Passenger extends React.Component {
     this.state = {
       polylineToDestination: [],
       ridePlaceIds: null,
-      findingDriver: false
+      findingDriver: false,
+      driverLocation: null
     };
   }
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     this.socket = socketIO.connect(SOCKET_BASE_URL);
+    this.socket.on("driverLocationChange", driverLocation => {
+      this.handleDriveLocationChange(driverLocation);
+    });
+    this.socket.on("driverFound", driverLocation => {
+      this.handleDriverFound(driverLocation);
+    });
+  };
+
+  handleDriverFound = driverLocation => {
+    const { polylineToDestination } = this.state;
+    this.setState({ findingDriver: false, driverLocation });
+    // Zoom the map out including the driver location, now
+    this.refs.map.fitToCoordinates([...polylineToDestination, driverLocation], {
+      edgePadding: { top: 550, right: 150, bottom: 350, left: 150 },
+      animated: true
+    });
+  };
+
+  handleDriveLocationChange = driverLocation => {
+    this.setState({ driverLocation });
   };
 
   handleDestinationSelect = async placeId => {
@@ -73,7 +95,7 @@ class Passenger extends React.Component {
   };
 
   render() {
-    const { polylineToDestination, findingDriver } = this.state;
+    const { polylineToDestination, findingDriver, driverLocation } = this.state;
     const { userLocation } = this.props;
     return (
       <View style={styles.container}>
@@ -98,6 +120,7 @@ class Passenger extends React.Component {
               />
             </Fragment>
           )}
+          {driverLocation && <DriverMarker coordinate={driverLocation} />}
         </MapView>
         <DestinationSearch
           userLocation={userLocation}
