@@ -10,8 +10,8 @@ YellowBox.ignoreWarnings([
   "Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?"
 ]);
 
-import Driver from "./src/screens/Driver";
-import Passenger from "./src/screens/Passenger";
+import Driver from "@screens/Driver";
+import Passenger from "@screens/Passenger";
 
 class App extends React.Component {
   constructor(props) {

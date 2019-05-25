@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 
-import THEME from "../../theme";
+import THEME from "@theme";
 
 const MapAction = ({ ...props }) => (
   <View style={styles.mapAction} {...props} />

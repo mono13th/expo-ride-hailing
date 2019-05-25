@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import { debounce } from "lodash";
 
-import { PLACES_SEARCH_BASE_URL } from "../../constants";
-import THEME from "../../theme";
+import { PLACES_SEARCH_BASE_URL } from "@constants";
+import THEME from "@theme";
 import Result from "./Result";
 
 class DestinationSearch extends React.Component {

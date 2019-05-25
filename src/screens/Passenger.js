@@ -3,14 +3,14 @@ import { View, StyleSheet } from "react-native";
 import { MapView } from "expo";
 import socketIO from "socket.io-client";
 
-import Button from "../components/Button";
-import DestinationSearch from "../components/DestinationSearch";
-import MapAction from "../components/MapAction";
-import Route from "../components/Route";
-import { SOCKET_BASE_URL } from "../constants";
-import { withLocation } from "../utils/with-location";
-import { getRouteDirections } from "../utils/get-route-directions";
-import { buildRoutePolyline } from "../utils/build-route-polyline";
+import Button from "@components/Button";
+import DestinationSearch from "@components/DestinationSearch";
+import MapAction from "@components/MapAction";
+import Route from "@components/Route";
+import { SOCKET_BASE_URL } from "@constants";
+import { withLocation } from "@utils/with-location";
+import { getRouteDirections } from "@utils/get-route-directions";
+import { buildRoutePolyline } from "@utils/build-route-polyline";
 
 class Passenger extends React.Component {
   constructor(props) {

@@ -1,4 +1,4 @@
-import { DIRECTIONS_BASE_URL } from "../constants";
+import { DIRECTIONS_BASE_URL } from "@constants";
 
 export const getRouteDirections = async (start, end) => {
   const url = `${DIRECTIONS_BASE_URL}&origin=${start}&destination=${end}`;
